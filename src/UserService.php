@@ -99,22 +99,22 @@ final class UserService
 		$code = $res->getStatusCode();
 		$body = (string) $res->getBody();
 
+		if ($code < 200 || $code >= 300) {
+			$url = $effectiveUrl ?? '(unknown)';
+			$msg = $json['error'] ?? "Unexpected status code {$code}, "
+			. "Method: {$method}, URI: {$url}, Code: {$code}, Response: {$body}";
+			throw new ApiException((string) $msg);
+		}
+
 		/** @var array<string,mixed>|null $json */
 		$json = json_decode($body, true);
 
 		if ($json === null && $body !== '' && json_last_error() !== JSON_ERROR_NONE) {
-			$url     = $effectiveUrl ?? '(unknown)';
+			$url = $effectiveUrl ?? '(unknown)';
 			throw new ApiException(
 				'Invalid JSON from API: ' . json_last_error_msg()
 				. " Method: {$method}, URI: {$url}, Code: {$code}, Response: {$body}"
 			);
-		}
-
-		if ($code < 200 || $code >= 300) {
-			$url     = $effectiveUrl ?? '(unknown)';
-			$msg = $json['error'] ?? "Unexpected status code {$code}"
-				. " Method: {$method}, URI: {$url}, Code: {$code}, Response: {$body}";
-			throw new ApiException((string) $msg);
 		}
 
 		return $json ?? [];
