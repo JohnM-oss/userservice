@@ -16,19 +16,29 @@ final class UserService
 	private const BASE_URI = 'https://reqres.in/api';
 
 	public function __construct(
-		private readonly ClientInterface $http
+		private readonly ClientInterface $http,
+		private readonly ?string $apiKey = null
 	) {}
 
-	public static function withDefaults(?string $baseUri = null, ?float $timeout = 10.0): self
+	public static function withDefaults(
+		?string $baseUri = null,
+		?float $timeout = 10.0,
+		?string $apiKey = null
+	): self
 	{
+		// allow env fallback (set REQRES_API_KEY in your system or web server)
+		$apiKey = $apiKey ?? (getenv('REQRES_API_KEY') ?: null);
+
+		$headers = [
+			'Accept'       => 'application/json',
+			'Content-Type' => 'application/json',
+		];
+
 		return new self(new Client([
 			'base_uri' => $baseUri ?? self::BASE_URI,
 			'timeout'  => $timeout,
 			'http_errors' => false,
-			'headers'  => [
-				'Accept' => 'application/json',
-				'Content-Type' => 'application/json',
-			],
+			'headers'  => $headers,
 		]));
 	}
 
@@ -65,6 +75,12 @@ final class UserService
 	 */
 	private function requestJson(string $method, string $uri, array $options = []): array
 	{
+		$headers = array_change_key_case($options['headers'] ?? [], CASE_LOWER);
+		if ($this->apiKey && !array_key_exists('x-api-key', $headers)) {
+			$headers['x-api-key'] = $this->apiKey;
+		}
+		$options['headers'] = $headers;
+
 		try {
 			$res = $this->http->request($method, $uri, $options);
 		} catch (GuzzleException $e) {

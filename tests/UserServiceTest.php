@@ -6,18 +6,22 @@ namespace Johnm\Userservice\Tests;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Johnm\Userservice\UserService;
 use PHPUnit\Framework\TestCase;
 
 final class UserserviceTest extends TestCase
 {
+	private const BASE_URI = 'https://reqres.in/api';
+	private const API_KEY = 'reqres-free-v1';
+
 	private function makeService(array $responses): Userservice
 	{
 		$mock = new MockHandler($responses);
 		$stack = HandlerStack::create($mock);
-		$client = new Client(['handler' => $stack, 'base_uri' => 'https://reqres.in/api']);
-		return new Userservice($client);
+		$client = new Client(['handler' => $stack, 'base_uri' => self::BASE_URI]);
+		return new Userservice($client, self::API_KEY);
 	}
 
 	public function testGetUserById(): void
@@ -109,5 +113,27 @@ final class UserserviceTest extends TestCase
 
 		$this->assertJson(json_encode($created));
 		$this->assertArrayHasKey('createdAt', $created->toArray());
+	}
+
+	public function testApiKeyHeaderIsAdded(): void
+	{
+		$history = [];
+		$mock = new MockHandler([
+			new Response(200, ['Content-Type' => 'application/json'], json_encode(['data' => [
+				'id' => 2, 'email' => 'a@b', 'first_name' => 'A', 'last_name' => 'B', 'avatar' => ''
+			]], JSON_THROW_ON_ERROR)),
+		]);
+
+		$stack = HandlerStack::create($mock);
+		$stack->push(Middleware::history($history));
+
+		$client = new Client(['handler' => $stack, 'base_uri' => self::BASE_URI]);
+
+		$svc = new UserService($client, self::API_KEY);
+		$svc->getUserById(2);
+
+		$this->assertNotEmpty($history);
+		$sent = $history[0]['request'];
+		$this->assertSame(self::API_KEY, $sent->getHeaderLine('x-api-key'));
 	}
 }
