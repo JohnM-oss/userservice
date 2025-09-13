@@ -14,7 +14,7 @@ use Johnm\Userservice\Exception\ApiException;
 
 final class UserService
 {
-	private const BASE_URI = 'https://reqres.in/api';
+	private const BASE_URI = 'https://reqres.in/api/';
 
 	public function __construct(
 		private readonly ClientInterface $http,

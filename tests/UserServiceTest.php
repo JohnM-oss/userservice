@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 final class UserserviceTest extends TestCase
 {
-	private const BASE_URI = 'https://reqres.in/api';
+	private const BASE_URI = 'https://reqres.in/api/';
 	private const API_KEY = 'reqres-free-v1';
 
 	private function makeService(array $responses): Userservice
