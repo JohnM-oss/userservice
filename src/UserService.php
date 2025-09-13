@@ -6,6 +6,7 @@ namespace Johnm\Userservice;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\TransferStats;
 use Johnm\Userservice\Dto\CreatedUser;
 use Johnm\Userservice\Dto\User;
 use Johnm\Userservice\Dto\UserPage;
