@@ -24,6 +24,10 @@
     "phpstan/phpstan-phpunit": "^2.0"
   },
   "scripts": {
-    "test": "phpunit"
+    "test": "phpunit",
+    "stan": "phpstan analyse",
+    "stan:max": "phpstan analyse --level=max",
+    "stan:gen-baseline": "phpstan analyse --generate-baseline",
+    "stan:clear": "rm -rf var/phpstan || rmdir /S /Q var\\phpstan"
   }
 }
