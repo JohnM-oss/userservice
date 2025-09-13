@@ -45,7 +45,7 @@ final class UserService
 	/** Retrieve a single user by ID */
 	public function getUserById(int $id): User
 	{
-		$json = $this->requestJson('GET', "/users/{$id}");
+		$json = $this->requestJson('GET', "users/{$id}");
 		if (!isset($json['data'])) {
 			throw new ApiException('Malformed response: missing data');
 		}
@@ -55,14 +55,14 @@ final class UserService
 	/** Retrieve a paginated list of users */
 	public function listUsers(int $page = 1, int $perPage = 6): UserPage
 	{
-		$json = $this->requestJson('GET', '/users', ['query' => ['page' => $page, 'per_page' => $perPage]]);
+		$json = $this->requestJson('GET', 'users', ['query' => ['page' => $page, 'per_page' => $perPage]]);
 		return UserPage::fromApi($json);
 	}
 
 	/** Create a new user; returns new user ID and metadata */
 	public function createUser(string $name, string $job): CreatedUser
 	{
-		$json = $this->requestJson('POST', '/users', ['json' => ['name' => $name, 'job' => $job]]);
+		$json = $this->requestJson('POST', 'users', ['json' => ['name' => $name, 'job' => $job]]);
 		if (!isset($json['id'], $json['createdAt'])) {
 			throw new ApiException('Malformed response: missing id/createdAt');
 		}
@@ -75,6 +75,13 @@ final class UserService
 	 */
 	private function requestJson(string $method, string $uri, array $options = []): array
 	{
+		$effectiveUrl = null;
+
+		// capture the final URL used for this request
+		$options['on_stats'] = function (TransferStats $stats) use (&$effectiveUrl): void {
+			$effectiveUrl = (string) $stats->getEffectiveUri();
+		};
+
 		$headers = array_change_key_case($options['headers'] ?? [], CASE_LOWER);
 		if ($this->apiKey && !array_key_exists('x-api-key', $headers)) {
 			$headers['x-api-key'] = $this->apiKey;
@@ -84,6 +91,7 @@ final class UserService
 		try {
 			$res = $this->http->request($method, $uri, $options);
 		} catch (GuzzleException $e) {
+			$url = $effectiveUrl ?? (method_exists($e, 'getRequest') && $e->getRequest() ? (string)$e->getRequest()->getUri() : '(unknown)');
 			throw new ApiException('HTTP error: ' . $e->getMessage(), 0, $e);
 		}
 
@@ -94,14 +102,17 @@ final class UserService
 		$json = json_decode($body, true);
 
 		if ($json === null && $body !== '' && json_last_error() !== JSON_ERROR_NONE) {
+			$url     = $effectiveUrl ?? '(unknown)';
 			throw new ApiException(
 				'Invalid JSON from API: ' . json_last_error_msg()
-				. "Method: {$method}, URI: {$uri}, Body: {$body}"
+				. " Method: {$method}, URI: {$url}, Code: {$code}, Response: {$body}"
 			);
 		}
 
 		if ($code < 200 || $code >= 300) {
-			$msg = $json['error'] ?? "Unexpected status code {$code}";
+			$url     = $effectiveUrl ?? '(unknown)';
+			$msg = $json['error'] ?? "Unexpected status code {$code}"
+				. " Method: {$method}, URI: {$url}, Code: {$code}, Response: {$body}";
 			throw new ApiException((string) $msg);
 		}
 
