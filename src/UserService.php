@@ -39,7 +39,7 @@ final class UserService
 			'timeout'  => $timeout,
 			'http_errors' => false,
 			'headers'  => $headers,
-		]));
+		]), $apiKey);
 	}
 
 	/** Retrieve a single user by ID */
@@ -94,7 +94,10 @@ final class UserService
 		$json = json_decode($body, true);
 
 		if ($json === null && $body !== '' && json_last_error() !== JSON_ERROR_NONE) {
-			throw new ApiException('Invalid JSON from API: ' . json_last_error_msg());
+			throw new ApiException(
+				'Invalid JSON from API: ' . json_last_error_msg()
+				. "Method: {$method}, URI: {$uri}, Body: {$body}"
+			);
 		}
 
 		if ($code < 200 || $code >= 300) {
