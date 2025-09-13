@@ -3,14 +3,12 @@ includes:
 
 parameters:
 	# Start with level 6–8; raise to 'max' once green.
-	level: 7
+	level: 8
 
 	paths:
 		- src
 		- tests
 
-	autoload_directories:
-		- src
 	bootstrapFiles:
 		- vendor/autoload.php
 

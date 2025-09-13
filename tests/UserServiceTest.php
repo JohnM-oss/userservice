@@ -16,6 +16,7 @@ final class UserserviceTest extends TestCase
 	private const BASE_URI = 'https://reqres.in/api/';
 	private const API_KEY = 'reqres-free-v1';
 
+	/** @param array<int,mixed> $responses */
 	private function makeService(array $responses): Userservice
 	{
 		$mock = new MockHandler($responses);
@@ -50,7 +51,7 @@ final class UserserviceTest extends TestCase
 		$arr = $user->toArray();
 		$this->assertArrayHasKey('firstName', $arr);
 		$this->assertSame('Janet', $arr['firstName']);
-		$this->assertJson(json_encode($user));
+		$this->assertJson(json_encode($user) ?: '');
 	}
 
 	public function testListUsers(): void
@@ -89,7 +90,7 @@ final class UserserviceTest extends TestCase
 		$this->assertCount(2, $page->data);
 		$this->assertSame('George', $page->data[0]->firstName);
 
-		$this->assertJson(json_encode($page));
+		$this->assertJson(json_encode($page) ?: '');
 		$this->assertSame(12, $page->total);
 	}
 
@@ -111,7 +112,7 @@ final class UserserviceTest extends TestCase
 		$this->assertSame('The One', $created->job);
 		$this->assertSame('2025-01-01T12:00:00+00:00', $created->createdAt->format(DATE_ATOM));
 
-		$this->assertJson(json_encode($created));
+		$this->assertJson(json_encode($created) ?: '');
 		$this->assertArrayHasKey('createdAt', $created->toArray());
 	}
 

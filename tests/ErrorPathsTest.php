@@ -16,6 +16,7 @@ final class ErrorPathsTest extends TestCase
 	private const BASE_URI = 'https://reqres.in/api/';
 	private const API_KEY = 'reqres-free-v1';
 
+	/** @param array<int,mixed> $responses */
 	private function svcWithResponses(array $responses): UserService
 	{
 		$mock  = new MockHandler($responses);

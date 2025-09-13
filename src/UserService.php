@@ -101,7 +101,7 @@ final class UserService
 
 		if ($code < 200 || $code >= 300) {
 			$url = $effectiveUrl ?? '(unknown)';
-			$msg = $json['error'] ?? "Unexpected status code {$code}, "
+			$msg = "Unexpected status code {$code}, "
 			. "Method: {$method}, URI: {$url}, Code: {$code}, Response: {$body}";
 			throw new ApiException((string) $msg);
 		}

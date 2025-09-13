@@ -39,6 +39,7 @@ final class User implements JsonSerializable, ArrayConvertible
 		];
 	}
 
+	/** @return array<mixed> */
 	public function jsonSerialize(): array
 	{
 		return $this->toArray();
